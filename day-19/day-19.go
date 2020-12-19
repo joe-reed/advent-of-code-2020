@@ -11,9 +11,10 @@ func puzzle1(input string) (result int) {
 	messages := strings.Split(split[1], "\n")
 	rules := getRules(strings.Split(split[0], "\n"))
 
+	rule := simplifyRule(rules["0"], rules)
+
 	for _, message := range messages {
-		message, isValid := checkMessage(message, rules["0"], rules)
-		if isValid && len(message) == 0 {
+		if checkMessage(message, rule) {
 			result++
 		}
 	}
@@ -29,38 +30,23 @@ func getRules(rules []string) map[string]string {
 	return result
 }
 
-func checkMessage(message string, rule string, rules map[string]string) (string, bool) {
-	isValid := false
-	options := strings.Split(rule, "|")
-	originalMessage := message
-	for _, option := range options {
-		optionValid := true
-		for _, r := range strings.Split(option, " ") {
-			rValid := true
-			re := regexp.MustCompile(`(\d+)`)
-			matches := re.FindAllStringSubmatch(r, -1)
-			if len(matches) > 0 {
-				match := matches[0]
-				index := match[1]
-				newMessage, valid := checkMessage(message, rules[index], rules)
-				rValid = rValid && valid
-				message = newMessage
-			} else {
-				rr := regexp.MustCompile(fmt.Sprintf("^%s", r))
-				valid := rr.MatchString(message)
-				rValid = rValid && valid
-				if valid {
-					message = strings.Replace(message, r, "", 1)
-				}
-			}
-			optionValid = optionValid && rValid
+func simplifyRule(rule string, rules map[string]string) string {
+	r := regexp.MustCompile(`(\d+)`)
+	result := rule
+	matches := r.FindAllStringSubmatch(result, -1)
+	for len(matches) > 0 {
+		match := matches[0]
+		index := match[1]
+		if r.MatchString(rules[index]) {
+			rules[index] = simplifyRule(rules[index], rules)
 		}
-		isValid = isValid || optionValid
-		if optionValid {
-			break
-		}
-		message = originalMessage
+		result = strings.Replace(result, match[0], fmt.Sprintf("(%s)", rules[index]), 1)
+		matches = r.FindAllStringSubmatch(result, -1)
 	}
+	return strings.Replace(result, " ", "", -1)
+}
 
-	return message, isValid
+func checkMessage(message string, rule string) bool {
+	r := regexp.MustCompile(fmt.Sprintf("^%s$", rule))
+	return r.MatchString(message)
 }
