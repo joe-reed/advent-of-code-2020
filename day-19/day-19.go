@@ -21,6 +21,23 @@ func puzzle1(input string) (result int) {
 	return
 }
 
+func puzzle2(input string) (result int) {
+	split := strings.Split(input, "\n\n")
+	messages := strings.Split(split[1], "\n")
+	rules := getRules(strings.Split(split[0], "\n"))
+
+	rules["8"] = "42+"
+	rules["11"] = "42 31 | 42 42 31 31 | 42 42 42 31 31 31 | 42 42 42 42 31 31 31 31"
+	rule := simplifyRule(rules["0"], rules)
+
+	for _, message := range messages {
+		if checkMessage(message, rule) {
+			result++
+		}
+	}
+	return
+}
+
 func getRules(rules []string) map[string]string {
 	result := make(map[string]string)
 	for _, rule := range rules {
