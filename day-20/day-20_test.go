@@ -7,20 +7,6 @@ import (
 	. "utils"
 )
 
-func TestEdge(t *testing.T) {
-	e1 := edge("#..#...#")
-	e2 := edge("#..#...#")
-	if !e1.equals(e2) {
-		t.Errorf("expeted %s to equal %s", e1, e2)
-	}
-
-	e3 := edge(".....##.")
-	e4 := edge("#..#...#")
-	if e3.equals(e4) {
-		t.Errorf("expeted %s not to equal %s", e3, e4)
-	}
-}
-
 func TestPiece(t *testing.T) {
 	e1 := edge("#..#...#")
 	e2 := edge("#..##..#")
@@ -37,12 +23,128 @@ func TestPiece(t *testing.T) {
 
 	index, _ := p1.getMatchingEdge(p2)
 	if index != 1 {
-		t.Errorf("expeted matching edge %d to equal 1", index)
+		t.Errorf("expected: 1, actual: %d", index)
 	}
 
-	_, err := p1.getMatchingEdge(p3)
+	edge, err := p1.getMatchingEdge(p3)
 	if err == nil {
-		t.Errorf("received unexpected matching edge")
+		t.Errorf("received unexpected matching edge %d", edge)
+	}
+}
+
+func TestRotate90(t *testing.T) {
+	// ..#..
+	// #.###
+	// ..#.#
+	// ##.#.
+	// #..#.
+	e := [4]edge{
+		edge("..#.."),
+		edge(".##.."),
+		edge(".#..#"),
+		edge("##.#."),
+	}
+	i := []string{".##", ".#.", "#.#"}
+	p := piece{edges: e, inner: i}
+	rotated := p.rotate90()
+
+	// ##.#.
+	// .#...
+	// ..###
+	// ##.#.
+	// .##..
+	expectedEdges := [4]edge{
+		edge("##.#."),
+		edge("..#.."),
+		edge(".##.."),
+		edge(".#..#"),
+	}
+	expectedInner := []string{"#..", ".##", "#.#"}
+	expectedPiece := piece{edges: expectedEdges, inner: expectedInner}
+	checkPiecesAreEqual(expectedPiece, rotated, t)
+
+	rotated = p.rotate90().rotate90().rotate90().rotate90()
+	checkPiecesAreEqual(p, rotated, t)
+}
+
+func TestFlipAroundX(t *testing.T) {
+	// ..#..
+	// #.###
+	// ..#.#
+	// ##.#.
+	// #..#.
+	e := [4]edge{
+		edge("..#.."),
+		edge(".##.."),
+		edge(".#..#"),
+		edge("##.#."),
+	}
+	i := []string{".##", ".#.", "#.#"}
+	p := piece{edges: e, inner: i}
+	flipped := p.flipAroundX()
+
+	// #..#.
+	// ##.#.
+	// ..#.#
+	// #.###
+	// ..#..
+	expectedEdges := [4]edge{
+		edge("#..#."),
+		edge("..##."),
+		edge("..#.."),
+		edge(".#.##"),
+	}
+	expectedInner := []string{"#.#", ".#.", ".##"}
+	expectedPiece := piece{edges: expectedEdges, inner: expectedInner}
+	checkPiecesAreEqual(expectedPiece, flipped, t)
+
+	flipped = p.flipAroundX().flipAroundX()
+	checkPiecesAreEqual(p, flipped, t)
+}
+
+func TestFlipAndRotate(t *testing.T) {
+	// ..#..
+	// #.###
+	// ..#.#
+	// ##.#.
+	// #..#.
+	e := [4]edge{
+		edge("..#.."),
+		edge(".##.."),
+		edge(".#..#"),
+		edge("##.#."),
+	}
+	i := []string{".##", ".#.", "#.#"}
+	p := piece{edges: e, inner: i}
+
+	flippedAndRotated := p.flipAroundX().rotate90().rotate90()
+
+	// ..#..
+	// ###.#
+	// #.#..
+	// .#.##
+	// .#..#
+	expectedEdges := [4]edge{
+		edge("..#.."),
+		edge(".#.##"),
+		edge("#..#."),
+		edge("..##."),
+	}
+	expectedInner := []string{"##.", ".#.", "#.#"}
+	expectedPiece := piece{edges: expectedEdges, inner: expectedInner}
+	checkPiecesAreEqual(expectedPiece, flippedAndRotated, t)
+}
+
+func checkPiecesAreEqual(expectedPiece piece, actualPiece piece, t *testing.T) {
+	for i, expectedEdge := range expectedPiece.edges {
+		if actualPiece.edges[i] != expectedEdge {
+			t.Errorf("expected edge: %s, actual: %s (row %d)", expectedEdge, actualPiece.edges[i], i)
+		}
+	}
+	for i, expectedInnerRow := range expectedPiece.inner {
+		if actualPiece.inner[i] != expectedInnerRow {
+			t.Errorf("expected inner row: %s, actual: %s, (row %d)", expectedInnerRow, actualPiece.inner[i], i)
+		}
 	}
 }
 
