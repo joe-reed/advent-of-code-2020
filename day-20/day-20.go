@@ -31,103 +31,33 @@ func puzzle2(input string) int {
 	return strings.Count(s, "#")
 }
 
-type position struct {
-	x int
-	y int
-}
+func mapInputToPieces(input string) map[int]piece {
+	result := make(map[int]piece)
+	split := strings.Split(input, "\n\n")
+	for _, part := range split {
+		lines := strings.Split(part, "\n")
 
-func markSeaMonsters(puzzle []string) []string {
-	rotations := 0
-	hsm := hasSeaMonsters(puzzle)
-	for !hsm {
-		if rotations < 3 {
-			rotations++
-			puzzle = rotate90(puzzle)
-			hsm = hasSeaMonsters(puzzle)
-			continue
-		}
-		rotations = 0
-		puzzle = flipAroundX(rotate90(puzzle))
-		hsm = hasSeaMonsters(puzzle)
-	}
+		edgeWidth := len(lines[1])
 
-	result := make([]string, len(puzzle))
-	copy(result, puzzle)
-	earliestHeadPosition := 18
-	latestHeadPosition := len(puzzle[0]) - 2
-	for i := 0; i < len(result)-1; i++ {
-		for j := earliestHeadPosition; j <= latestHeadPosition; j++ {
-			seaMonster := []position{
-				{x: i, y: j},
-				{x: i + 1, y: j + 1},
-				{x: i + 1, y: j},
-				{x: i + 1, y: j - 1},
-				{x: i + 1, y: j - 6},
-				{x: i + 1, y: j - 7},
-				{x: i + 1, y: j - 12},
-				{x: i + 1, y: j - 13},
-				{x: i + 1, y: j - 18},
-				{x: i + 2, y: j - 17},
-				{x: i + 2, y: j - 14},
-				{x: i + 2, y: j - 11},
-				{x: i + 2, y: j - 8},
-				{x: i + 2, y: j - 5},
-				{x: i + 2, y: j - 2},
+		edge1 := edge("")
+		edge3 := edge("")
+
+		inner := []string{}
+		for i := 1; i <= edgeWidth; i++ {
+			edge1 += edge(lines[i][edgeWidth-1])
+			edge3 += edge(lines[i][0])
+			if i == 1 || i == edgeWidth {
+				continue
 			}
-			if checkSeaMonster(result, seaMonster) {
-				result = replaceSeaMonster(result, seaMonster)
-			}
+			inner = append(inner, lines[i][1:edgeWidth-1])
 		}
-	}
-	return result
-}
 
-func hasSeaMonsters(puzzle []string) bool {
-	earliestHeadPosition := 18
-	latestHeadPosition := len(puzzle[0]) - 2
-	for i := 0; i < len(puzzle)-1; i++ {
-		for j := earliestHeadPosition; j <= latestHeadPosition; j++ {
-			seaMonster := []position{
-				{x: i, y: j},
-				{x: i + 1, y: j + 1},
-				{x: i + 1, y: j},
-				{x: i + 1, y: j - 1},
-				{x: i + 1, y: j - 6},
-				{x: i + 1, y: j - 7},
-				{x: i + 1, y: j - 12},
-				{x: i + 1, y: j - 13},
-				{x: i + 1, y: j - 18},
-				{x: i + 2, y: j - 17},
-				{x: i + 2, y: j - 14},
-				{x: i + 2, y: j - 11},
-				{x: i + 2, y: j - 8},
-				{x: i + 2, y: j - 5},
-				{x: i + 2, y: j - 2},
-			}
-			if checkSeaMonster(puzzle, seaMonster) {
-				return true
-			}
-		}
-	}
-	return false
-}
+		edge0 := edge(lines[1])
+		edge2 := edge(lines[edgeWidth])
 
-func checkSeaMonster(puzzle []string, seaMonster []position) bool {
-	for _, position := range seaMonster {
-		if string(puzzle[position.x][position.y]) != "#" {
-			return false
-		}
-	}
-	return true
-}
-
-func replaceSeaMonster(puzzle []string, seaMonster []position) []string {
-	result := make([]string, len(puzzle))
-	copy(result, puzzle)
-
-	for _, position := range seaMonster {
-		row := result[position.x]
-		result[position.x] = row[:position.y] + "0" + row[position.y+1:]
+		r := regexp.MustCompile(`\d+`)
+		id := ConvertToInt(r.FindStringSubmatch(lines[0])[0])
+		result[id] = piece{id: id, edges: [4]edge{edge0, edge1, reverse(edge2), reverse(edge3)}, inner: inner}
 	}
 	return result
 }
@@ -236,33 +166,103 @@ func areAllOccupied(slots [][]slot) bool {
 	return true
 }
 
-func mapInputToPieces(input string) map[int]piece {
-	result := make(map[int]piece)
-	split := strings.Split(input, "\n\n")
-	for _, part := range split {
-		lines := strings.Split(part, "\n")
+type position struct {
+	x int
+	y int
+}
 
-		edgeWidth := len(lines[1])
-
-		edge1 := edge("")
-		edge3 := edge("")
-
-		inner := []string{}
-		for i := 1; i <= edgeWidth; i++ {
-			edge1 += edge(lines[i][edgeWidth-1])
-			edge3 += edge(lines[i][0])
-			if i == 1 || i == edgeWidth {
-				continue
-			}
-			inner = append(inner, lines[i][1:edgeWidth-1])
+func markSeaMonsters(puzzle []string) []string {
+	rotations := 0
+	hsm := hasSeaMonsters(puzzle)
+	for !hsm {
+		if rotations < 3 {
+			rotations++
+			puzzle = rotate90(puzzle)
+			hsm = hasSeaMonsters(puzzle)
+			continue
 		}
+		rotations = 0
+		puzzle = flipAroundX(rotate90(puzzle))
+		hsm = hasSeaMonsters(puzzle)
+	}
 
-		edge0 := edge(lines[1])
-		edge2 := edge(lines[edgeWidth])
+	result := make([]string, len(puzzle))
+	copy(result, puzzle)
+	earliestHeadPosition := 18
+	latestHeadPosition := len(puzzle[0]) - 2
+	for i := 0; i < len(result)-1; i++ {
+		for j := earliestHeadPosition; j <= latestHeadPosition; j++ {
+			seaMonster := []position{
+				{x: i, y: j},
+				{x: i + 1, y: j + 1},
+				{x: i + 1, y: j},
+				{x: i + 1, y: j - 1},
+				{x: i + 1, y: j - 6},
+				{x: i + 1, y: j - 7},
+				{x: i + 1, y: j - 12},
+				{x: i + 1, y: j - 13},
+				{x: i + 1, y: j - 18},
+				{x: i + 2, y: j - 17},
+				{x: i + 2, y: j - 14},
+				{x: i + 2, y: j - 11},
+				{x: i + 2, y: j - 8},
+				{x: i + 2, y: j - 5},
+				{x: i + 2, y: j - 2},
+			}
+			if checkSeaMonster(result, seaMonster) {
+				result = replaceSeaMonster(result, seaMonster)
+			}
+		}
+	}
+	return result
+}
 
-		r := regexp.MustCompile(`\d+`)
-		id := ConvertToInt(r.FindStringSubmatch(lines[0])[0])
-		result[id] = piece{id: id, edges: [4]edge{edge0, edge1, reverse(edge2), reverse(edge3)}, inner: inner}
+func hasSeaMonsters(puzzle []string) bool {
+	earliestHeadPosition := 18
+	latestHeadPosition := len(puzzle[0]) - 2
+	for i := 0; i < len(puzzle)-1; i++ {
+		for j := earliestHeadPosition; j <= latestHeadPosition; j++ {
+			seaMonster := []position{
+				{x: i, y: j},
+				{x: i + 1, y: j + 1},
+				{x: i + 1, y: j},
+				{x: i + 1, y: j - 1},
+				{x: i + 1, y: j - 6},
+				{x: i + 1, y: j - 7},
+				{x: i + 1, y: j - 12},
+				{x: i + 1, y: j - 13},
+				{x: i + 1, y: j - 18},
+				{x: i + 2, y: j - 17},
+				{x: i + 2, y: j - 14},
+				{x: i + 2, y: j - 11},
+				{x: i + 2, y: j - 8},
+				{x: i + 2, y: j - 5},
+				{x: i + 2, y: j - 2},
+			}
+			if checkSeaMonster(puzzle, seaMonster) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func checkSeaMonster(puzzle []string, seaMonster []position) bool {
+	for _, position := range seaMonster {
+		if string(puzzle[position.x][position.y]) != "#" {
+			return false
+		}
+	}
+	return true
+}
+
+func replaceSeaMonster(puzzle []string, seaMonster []position) []string {
+	result := make([]string, len(puzzle))
+	copy(result, puzzle)
+
+	for _, position := range seaMonster {
+		row := result[position.x]
+		result[position.x] = row[:position.y] + "0" + row[position.y+1:]
 	}
 	return result
 }
