@@ -31,8 +31,7 @@ func puzzle2(input string) int {
 	return strings.Count(s, "#")
 }
 
-func mapInputToPieces(input string) map[int]piece {
-	result := make(map[int]piece)
+func mapInputToPieces(input string) (result []piece) {
 	split := strings.Split(input, "\n\n")
 	for _, part := range split {
 		lines := strings.Split(part, "\n")
@@ -57,12 +56,13 @@ func mapInputToPieces(input string) map[int]piece {
 
 		r := regexp.MustCompile(`\d+`)
 		id := ConvertToInt(r.FindStringSubmatch(lines[0])[0])
-		result[id] = piece{id: id, edges: [4]edge{edge0, edge1, reverse(edge2), reverse(edge3)}, inner: inner}
+		piece := piece{id: id, edges: [4]edge{edge0, edge1, reverse(edge2), reverse(edge3)}, inner: inner}
+		result = append(result, piece)
 	}
-	return result
+	return
 }
 
-func buildPuzzle(pieces map[int]piece) []string {
+func buildPuzzle(pieces []piece) []string {
 	sortedPieces := make(map[int][]piece)
 	for _, piece := range pieces {
 		optionCount := len(piece.getMatchingEdges(pieces))
@@ -93,7 +93,7 @@ func combinePieces(slots [][]slot) (result []string) {
 	return
 }
 
-func rotateTopLeftPiece(p piece, pieces map[int]piece) piece {
+func rotateTopLeftPiece(p piece, pieces []piece) piece {
 	result := p
 	indices := result.getMatchingEdges(pieces)
 	for indices[0] != 1 || indices[1] != 2 {
@@ -103,7 +103,7 @@ func rotateTopLeftPiece(p piece, pieces map[int]piece) piece {
 	return result
 }
 
-func occupySlots(startingPiece piece, sortedPieces map[int][]piece, pieces map[int]piece) [][]slot {
+func occupySlots(startingPiece piece, sortedPieces map[int][]piece, pieces []piece) [][]slot {
 	width := int(math.Sqrt(float64(len(pieces))))
 	slots := make([][]slot, width)
 	for y := range slots {
@@ -270,7 +270,7 @@ type piece struct {
 
 type edge string
 
-func (p piece) isCornerPiece(pieces map[int]piece) bool {
+func (p piece) isCornerPiece(pieces []piece) bool {
 	return len(p.getMatchingEdges(pieces)) == 2
 }
 
@@ -325,7 +325,7 @@ func flipAroundX(s []string) []string {
 	return reverseSlice(s)
 }
 
-func (p piece) getMatchingEdges(pieces map[int]piece) []int {
+func (p piece) getMatchingEdges(pieces []piece) []int {
 	result := []int{}
 	for _, piece := range pieces {
 		if piece.id == p.id {
