@@ -192,23 +192,7 @@ func markSeaMonsters(puzzle []string) []string {
 	latestHeadPosition := len(puzzle[0]) - 2
 	for i := 0; i < len(result)-1; i++ {
 		for j := earliestHeadPosition; j <= latestHeadPosition; j++ {
-			seaMonster := []position{
-				{x: i, y: j},
-				{x: i + 1, y: j + 1},
-				{x: i + 1, y: j},
-				{x: i + 1, y: j - 1},
-				{x: i + 1, y: j - 6},
-				{x: i + 1, y: j - 7},
-				{x: i + 1, y: j - 12},
-				{x: i + 1, y: j - 13},
-				{x: i + 1, y: j - 18},
-				{x: i + 2, y: j - 17},
-				{x: i + 2, y: j - 14},
-				{x: i + 2, y: j - 11},
-				{x: i + 2, y: j - 8},
-				{x: i + 2, y: j - 5},
-				{x: i + 2, y: j - 2},
-			}
+			seaMonster := getSeaMonster(i, j)
 			if checkSeaMonster(result, seaMonster) {
 				result = replaceSeaMonster(result, seaMonster)
 			}
@@ -222,29 +206,33 @@ func hasSeaMonsters(puzzle []string) bool {
 	latestHeadPosition := len(puzzle[0]) - 2
 	for i := 0; i < len(puzzle)-1; i++ {
 		for j := earliestHeadPosition; j <= latestHeadPosition; j++ {
-			seaMonster := []position{
-				{x: i, y: j},
-				{x: i + 1, y: j + 1},
-				{x: i + 1, y: j},
-				{x: i + 1, y: j - 1},
-				{x: i + 1, y: j - 6},
-				{x: i + 1, y: j - 7},
-				{x: i + 1, y: j - 12},
-				{x: i + 1, y: j - 13},
-				{x: i + 1, y: j - 18},
-				{x: i + 2, y: j - 17},
-				{x: i + 2, y: j - 14},
-				{x: i + 2, y: j - 11},
-				{x: i + 2, y: j - 8},
-				{x: i + 2, y: j - 5},
-				{x: i + 2, y: j - 2},
-			}
+			seaMonster := getSeaMonster(i, j)
 			if checkSeaMonster(puzzle, seaMonster) {
 				return true
 			}
 		}
 	}
 	return false
+}
+
+func getSeaMonster(i, j int) []position {
+	return []position{
+		{x: i, y: j},
+		{x: i + 1, y: j + 1},
+		{x: i + 1, y: j},
+		{x: i + 1, y: j - 1},
+		{x: i + 1, y: j - 6},
+		{x: i + 1, y: j - 7},
+		{x: i + 1, y: j - 12},
+		{x: i + 1, y: j - 13},
+		{x: i + 1, y: j - 18},
+		{x: i + 2, y: j - 17},
+		{x: i + 2, y: j - 14},
+		{x: i + 2, y: j - 11},
+		{x: i + 2, y: j - 8},
+		{x: i + 2, y: j - 5},
+		{x: i + 2, y: j - 2},
+	}
 }
 
 func checkSeaMonster(puzzle []string, seaMonster []position) bool {
