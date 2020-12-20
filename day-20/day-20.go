@@ -20,6 +20,118 @@ func puzzle1(input string) int {
 	return result
 }
 
+func puzzle2(input string) int {
+	pieces := mapInputToPieces(input)
+	puzzle := buildPuzzle(pieces)
+	marked := markSeaMonsters(puzzle)
+	s := ""
+	for _, m := range marked {
+		s += m
+	}
+	return strings.Count(s, "#")
+}
+
+type position struct {
+	x int
+	y int
+}
+
+func markSeaMonsters(puzzle []string) []string {
+	rotations := 0
+	hsm := hasSeaMonsters(puzzle)
+	for !hsm {
+		if rotations < 3 {
+			rotations++
+			puzzle = rotate90(puzzle)
+			hsm = hasSeaMonsters(puzzle)
+			continue
+		}
+		rotations = 0
+		puzzle = flipAroundX(rotate90(puzzle))
+		hsm = hasSeaMonsters(puzzle)
+	}
+
+	result := make([]string, len(puzzle))
+	copy(result, puzzle)
+	earliestHeadPosition := 18
+	latestHeadPosition := len(puzzle[0]) - 2
+	for i := 0; i < len(result)-1; i++ {
+		for j := earliestHeadPosition; j <= latestHeadPosition; j++ {
+			seaMonster := []position{
+				{x: i, y: j},
+				{x: i + 1, y: j + 1},
+				{x: i + 1, y: j},
+				{x: i + 1, y: j - 1},
+				{x: i + 1, y: j - 6},
+				{x: i + 1, y: j - 7},
+				{x: i + 1, y: j - 12},
+				{x: i + 1, y: j - 13},
+				{x: i + 1, y: j - 18},
+				{x: i + 2, y: j - 17},
+				{x: i + 2, y: j - 14},
+				{x: i + 2, y: j - 11},
+				{x: i + 2, y: j - 8},
+				{x: i + 2, y: j - 5},
+				{x: i + 2, y: j - 2},
+			}
+			if checkSeaMonster(result, seaMonster) {
+				result = replaceSeaMonster(result, seaMonster)
+			}
+		}
+	}
+	return result
+}
+
+func hasSeaMonsters(puzzle []string) bool {
+	earliestHeadPosition := 18
+	latestHeadPosition := len(puzzle[0]) - 2
+	for i := 0; i < len(puzzle)-1; i++ {
+		for j := earliestHeadPosition; j <= latestHeadPosition; j++ {
+			seaMonster := []position{
+				{x: i, y: j},
+				{x: i + 1, y: j + 1},
+				{x: i + 1, y: j},
+				{x: i + 1, y: j - 1},
+				{x: i + 1, y: j - 6},
+				{x: i + 1, y: j - 7},
+				{x: i + 1, y: j - 12},
+				{x: i + 1, y: j - 13},
+				{x: i + 1, y: j - 18},
+				{x: i + 2, y: j - 17},
+				{x: i + 2, y: j - 14},
+				{x: i + 2, y: j - 11},
+				{x: i + 2, y: j - 8},
+				{x: i + 2, y: j - 5},
+				{x: i + 2, y: j - 2},
+			}
+			if checkSeaMonster(puzzle, seaMonster) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func checkSeaMonster(puzzle []string, seaMonster []position) bool {
+	for _, position := range seaMonster {
+		if string(puzzle[position.x][position.y]) != "#" {
+			return false
+		}
+	}
+	return true
+}
+
+func replaceSeaMonster(puzzle []string, seaMonster []position) []string {
+	result := make([]string, len(puzzle))
+	copy(result, puzzle)
+
+	for _, position := range seaMonster {
+		row := result[position.x]
+		result[position.x] = row[:position.y] + "0" + row[position.y+1:]
+	}
+	return result
+}
+
 func buildPuzzle(pieces map[int]piece) []string {
 	sortedPieces := make(map[int][]piece)
 	for _, piece := range pieces {
@@ -193,14 +305,19 @@ func (p piece) rotate90() piece {
 		p.edges[2],
 	}
 
-	inner := make([]string, len(p.inner))
-	for i := range p.inner {
-		for _, row := range p.inner {
-			inner[i] = string(row[i]) + inner[i]
-		}
-	}
+	inner := rotate90(p.inner)
 
 	return piece{id: p.id, edges: edges, inner: inner}
+}
+
+func rotate90(s []string) []string {
+	result := make([]string, len(s))
+	for i := range s {
+		for _, row := range s {
+			result[i] = string(row[i]) + result[i]
+		}
+	}
+	return result
 }
 
 func (p piece) flipAroundX() piece {
@@ -211,9 +328,13 @@ func (p piece) flipAroundX() piece {
 		reverse(p.edges[3]),
 	}
 
-	inner := reverseSlice(p.inner)
+	inner := flipAroundX(p.inner)
 
 	return piece{id: p.id, edges: edges, inner: inner}
+}
+
+func flipAroundX(s []string) []string {
+	return reverseSlice(s)
 }
 
 func (p piece) getMatchingEdges(pieces map[int]piece) []int {
