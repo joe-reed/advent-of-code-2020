@@ -12,9 +12,14 @@ import (
 func puzzle1(input string) int {
 	result := 1
 	pieces := mapInputToPieces(input)
+	count := 0
 	for _, piece := range pieces {
 		if piece.isCornerPiece(pieces) {
 			result *= piece.id
+			count++
+		}
+		if count == 4 {
+			break
 		}
 	}
 	return result
