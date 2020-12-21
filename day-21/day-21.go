@@ -7,8 +7,7 @@ import (
 )
 
 func puzzle1(foodList []string) int {
-	allergens := getAllergens(foodList)
-	ingredients := getIngredients(foodList)
+	allergens, ingredients := parseFoodList(foodList)
 	options := getAllergenOptions(allergens, ingredients)
 
 	for i := range ingredients {
@@ -27,8 +26,7 @@ func puzzle1(foodList []string) int {
 }
 
 func puzzle2(foodList []string) string {
-	allergens := getAllergens(foodList)
-	ingredients := getIngredients(foodList)
+	allergens, ingredients := parseFoodList(foodList)
 	options := getAllergenOptions(allergens, ingredients)
 
 	for i, a := range options {
@@ -78,21 +76,13 @@ func getAllergenOptions(allergens [][]string, ingredients [][]string) map[string
 	return options
 }
 
-func getAllergens(foodList []string) (result [][]string) {
+func parseFoodList(foodList []string) (allergens [][]string, ingredients [][]string) {
 	r := regexp.MustCompile(`contains (.+)\)`)
 	for _, item := range foodList {
 		allergenString := r.FindStringSubmatch(item)[1]
-		allergens := strings.Split(allergenString, ", ")
-		result = append(result, allergens)
-	}
-	return
-}
-
-func getIngredients(foodList []string) (result [][]string) {
-	for _, item := range foodList {
+		allergens = append(allergens, strings.Split(allergenString, ", "))
 		ingredientString := strings.Split(item, " (")[0]
-		ingredients := strings.Split(ingredientString, " ")
-		result = append(result, ingredients)
+		ingredients = append(ingredients, strings.Split(ingredientString, " "))
 	}
 	return
 }
