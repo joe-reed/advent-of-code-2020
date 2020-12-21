@@ -40,17 +40,10 @@ func puzzle2(foodList []string) string {
 			options[j] = remove(b, a[0])
 		}
 	}
-
-	allergenList := []string{}
-	for a := range options {
-		if !contains(allergenList, a) {
-			allergenList = append(allergenList, a)
-		}
-	}
-	sort.Strings(allergenList)
+	sortedAllergens := getSortedAllergens(options)
 
 	dangerousIngredients := []string{}
-	for _, a := range allergenList {
+	for _, a := range sortedAllergens {
 		dangerousIngredients = append(dangerousIngredients, options[a][0])
 	}
 	return strings.Join(dangerousIngredients, ",")
@@ -84,6 +77,16 @@ func parseFoodList(foodList []string) (allergens [][]string, ingredients [][]str
 		ingredientString := strings.Split(item, " (")[0]
 		ingredients = append(ingredients, strings.Split(ingredientString, " "))
 	}
+	return
+}
+
+func getSortedAllergens(options map[string][]string) (result []string) {
+	for a := range options {
+		if !contains(result, a) {
+			result = append(result, a)
+		}
+	}
+	sort.Strings(result)
 	return
 }
 
