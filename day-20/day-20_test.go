@@ -193,6 +193,11 @@ func TestPuzzle2(t *testing.T) {
 func TestSolvePuzzle2(t *testing.T) {
 	fmt.Println("Puzzle 2:", puzzle2(getInput("./input.txt")))
 }
+func BenchmarkPuzzle2(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		puzzle2(getInput("./input.txt"))
+	}
+}
 
 func getInput(path string) string {
 	file, err := ioutil.ReadFile(path)
