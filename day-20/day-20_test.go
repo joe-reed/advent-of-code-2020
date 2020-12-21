@@ -171,6 +171,12 @@ func TestSolvePuzzle1(t *testing.T) {
 	fmt.Println("Puzzle 1:", puzzle1(getInput("./input.txt")))
 }
 
+func BenchmarkPuzzle1(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		puzzle1(getInput("./input.txt"))
+	}
+}
+
 func TestPuzzle2(t *testing.T) {
 	tests := []struct {
 		input    string
