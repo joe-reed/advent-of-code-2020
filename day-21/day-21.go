@@ -2,28 +2,14 @@ package main
 
 import (
 	"regexp"
+	"sort"
 	"strings"
 )
 
 func puzzle1(foodList []string) int {
 	allergens := getAllergens(foodList)
 	ingredients := getIngredients(foodList)
-	options := make(map[string][]string)
-	for _, allergen := range allergens {
-		options[allergen] = []string{}
-	}
-
-	for i, item := range foodList {
-		for _, allergen := range allergens {
-			if strings.Contains(item, allergen) {
-				if len(options[allergen]) == 0 {
-					options[allergen] = ingredients[i]
-				} else {
-					options[allergen] = intersect(options[allergen], ingredients[i])
-				}
-			}
-		}
-	}
+	options := getAllergenOptions(allergens, ingredients)
 
 	for i := range ingredients {
 		for _, potentialAllergens := range options {
@@ -40,16 +26,68 @@ func puzzle1(foodList []string) int {
 	return count
 }
 
-func getAllergens(foodList []string) (result []string) {
+func puzzle2(foodList []string) string {
+	allergens := getAllergens(foodList)
+	ingredients := getIngredients(foodList)
+	options := getAllergenOptions(allergens, ingredients)
+
+	finished := false
+	for !finished {
+		for i, a := range options {
+			for j, b := range options {
+				if i == j {
+					continue
+				}
+				if len(a) != 1 {
+					continue
+				}
+				options[j] = remove(b, a[0])
+			}
+		}
+		finished = allMatched(options)
+	}
+
+	allergenList := []string{}
+	for a := range options {
+		if !contains(allergenList, a) {
+			allergenList = append(allergenList, a)
+		}
+	}
+	sort.Strings(allergenList)
+
+	dangerousIngredients := []string{}
+	for _, a := range allergenList {
+		dangerousIngredients = append(dangerousIngredients, options[a][0])
+	}
+	return strings.Join(dangerousIngredients, ",")
+}
+
+func getAllergenOptions(allergens [][]string, ingredients [][]string) map[string][]string {
+	options := make(map[string][]string)
+	for _, a := range allergens {
+		for _, allergen := range a {
+			options[allergen] = []string{}
+		}
+	}
+
+	for i, a := range allergens {
+		for _, allergen := range a {
+			if len(options[allergen]) == 0 {
+				options[allergen] = ingredients[i]
+			} else {
+				options[allergen] = intersect(options[allergen], ingredients[i])
+			}
+		}
+	}
+	return options
+}
+
+func getAllergens(foodList []string) (result [][]string) {
 	r := regexp.MustCompile(`contains (.+)\)`)
 	for _, item := range foodList {
 		allergenString := r.FindStringSubmatch(item)[1]
 		allergens := strings.Split(allergenString, ", ")
-		for _, allergen := range allergens {
-			if !contains(result, allergen) {
-				result = append(result, allergen)
-			}
-		}
+		result = append(result, allergens)
 	}
 	return
 }
@@ -61,6 +99,15 @@ func getIngredients(foodList []string) (result [][]string) {
 		result = append(result, ingredients)
 	}
 	return
+}
+
+func allMatched(options map[string][]string) bool {
+	for _, o := range options {
+		if len(o) > 1 {
+			return false
+		}
+	}
+	return true
 }
 
 func contains(s []string, e string) bool {
