@@ -31,15 +31,12 @@ func puzzle2(foodList []string) string {
 
 	for i, a := range options {
 		for j, b := range options {
-			if i == j {
-				continue
+			if len(a) == 1 && i != j {
+				options[j] = remove(b, a[0])
 			}
-			if len(a) != 1 {
-				continue
-			}
-			options[j] = remove(b, a[0])
 		}
 	}
+
 	sortedAllergens := getSortedAllergens(options)
 
 	dangerousIngredients := []string{}
