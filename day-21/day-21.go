@@ -31,20 +31,16 @@ func puzzle2(foodList []string) string {
 	ingredients := getIngredients(foodList)
 	options := getAllergenOptions(allergens, ingredients)
 
-	finished := false
-	for !finished {
-		for i, a := range options {
-			for j, b := range options {
-				if i == j {
-					continue
-				}
-				if len(a) != 1 {
-					continue
-				}
-				options[j] = remove(b, a[0])
+	for i, a := range options {
+		for j, b := range options {
+			if i == j {
+				continue
 			}
+			if len(a) != 1 {
+				continue
+			}
+			options[j] = remove(b, a[0])
 		}
-		finished = allMatched(options)
 	}
 
 	allergenList := []string{}
@@ -99,15 +95,6 @@ func getIngredients(foodList []string) (result [][]string) {
 		result = append(result, ingredients)
 	}
 	return
-}
-
-func allMatched(options map[string][]string) bool {
-	for _, o := range options {
-		if len(o) > 1 {
-			return false
-		}
-	}
-	return true
 }
 
 func contains(s []string, e string) bool {
