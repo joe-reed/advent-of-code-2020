@@ -9,15 +9,7 @@ func puzzle1(input string) int {
 	deck1, deck2 := getDecksFromInput(input)
 
 	for deck1.length() != 0 && deck2.length() != 0 {
-		card1 := deck1.popCard()
-		card2 := deck2.popCard()
-		if card1 > card2 {
-			deck1.appendCard(card1)
-			deck1.appendCard(card2)
-		} else {
-			deck2.appendCard(card2)
-			deck2.appendCard(card1)
-		}
+		deck1, deck2 = playRound(deck1, deck2)
 	}
 
 	return getWinner(deck1, deck2).getScore()
@@ -37,7 +29,22 @@ func getDecksFromInput(input string) (Deck, Deck) {
 	return decks[0], decks[1]
 }
 
-func getWinner(d1 Deck, d2 Deck) Deck {
+func playRound(d1, d2 Deck) (r1, r2 Deck) {
+	r1 = d1.clone()
+	r2 = d2.clone()
+	card1 := r1.popCard()
+	card2 := r2.popCard()
+	if card1 > card2 {
+		r1.appendCard(card1)
+		r1.appendCard(card2)
+	} else {
+		r2.appendCard(card2)
+		r2.appendCard(card1)
+	}
+	return
+}
+
+func getWinner(d1, d2 Deck) Deck {
 	if d1.length() == 0 {
 		return d2
 	}
@@ -55,6 +62,14 @@ func (d *Deck) appendCard(card int) {
 func (d *Deck) popCard() (card int) {
 	card = d.cards[0]
 	d.cards = d.cards[1:]
+	return
+}
+
+func (d Deck) clone() (result Deck) {
+	cards := make([]int, len(d.cards))
+	copy(cards, d.cards)
+	result = d
+	result.cards = cards
 	return
 }
 
