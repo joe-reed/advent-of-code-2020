@@ -47,7 +47,7 @@ func playRound(d1, d2 Deck, c1, c2 int) (Deck, Deck) {
 	if c2 > c1 {
 		winner = d2
 	}
-	return getOutcome(winner, d1.clone(), d2.clone(), c1, c2)
+	return getOutcome(winner, d1, d2, c1, c2)
 }
 
 func playRecursiveGame(d1, d2 Deck) Deck {
