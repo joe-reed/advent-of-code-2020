@@ -7,16 +7,22 @@ import (
 
 func puzzle1(input string) int {
 	deck1, deck2 := getDecksFromInput(input)
-
+	var card1, card2 int
 	for deck1.length() != 0 && deck2.length() != 0 {
-		deck1, deck2 = playRound(deck1, deck2)
+		deck1, deck2, card1, card2 = drawCards(deck1, deck2)
+		deck1, deck2 = playRound(deck1, deck2, card1, card2)
 	}
-
 	return getWinner(deck1, deck2).getScore()
 }
 
+func puzzle2(input string) int {
+	deck1, deck2 := getDecksFromInput(input)
+	winner := playRecursiveGame(deck1, deck2)
+	return winner.getScore()
+}
+
 func getDecksFromInput(input string) (Deck, Deck) {
-	decks := []Deck{{cards: []int{}}, {cards: []int{}}}
+	decks := []Deck{{id: 1, cards: []int{}}, {id: 2, cards: []int{}}}
 	for i, s := range strings.Split(input, "\n\n") {
 		for j, line := range strings.Split(s, "\n") {
 			if j == 0 {
@@ -29,18 +35,50 @@ func getDecksFromInput(input string) (Deck, Deck) {
 	return decks[0], decks[1]
 }
 
-func playRound(d1, d2 Deck) (r1, r2 Deck) {
+func drawCards(d1, d2 Deck) (r1, r2 Deck, c1, c2 int) {
 	r1 = d1.clone()
 	r2 = d2.clone()
-	card1 := r1.popCard()
-	card2 := r2.popCard()
-	if card1 > card2 {
-		r1.appendCard(card1)
-		r1.appendCard(card2)
-	} else {
-		r2.appendCard(card2)
-		r2.appendCard(card1)
+	c1 = r1.popCard()
+	c2 = r2.popCard()
+	return
+}
+
+func playRound(d1, d2 Deck, c1, c2 int) (r1, r2 Deck) {
+	r1 = d1.clone()
+	r2 = d2.clone()
+	return getOutcome(c1 > c2, r1, r2, c1, c2)
+}
+
+func playRecursiveGame(d1, d2 Deck) Deck {
+	p1History := []Deck{}
+	r1 := d1.clone()
+	r2 := d2.clone()
+	for r1.length() != 0 && r2.length() != 0 {
+		r1, r2, p1History = playRecursiveRound(r1, r2, p1History)
+		if len(p1History) == 0 {
+			return r1
+		}
 	}
+	return getWinner(r1, r2)
+}
+
+func playRecursiveRound(d1, d2 Deck, p1History []Deck) (r1, r2 Deck, updatedHistory []Deck) {
+	if contains(p1History, d1) {
+		return d1, d2, []Deck{}
+	}
+	updatedHistory = append(p1History, d1)
+
+	var c1, c2 int
+	r1, r2, c1, c2 = drawCards(d1, d2)
+	if r1.length() >= c1 && r2.length() >= c2 {
+		winner := playRecursiveGame(
+			Deck{id: 1, cards: r1.cards[0:c1]},
+			Deck{id: 2, cards: r2.cards[0:c2]},
+		)
+		r1, r2 = getOutcome(winner.id == 1, r1, r2, c1, c2)
+		return
+	}
+	r1, r2 = playRound(r1, r2, c1, c2)
 	return
 }
 
@@ -51,7 +89,30 @@ func getWinner(d1, d2 Deck) Deck {
 	return d1
 }
 
+func getOutcome(condition bool, d1, d2 Deck, c1, c2 int) (r1, r2 Deck) {
+	r1 = d1.clone()
+	r2 = d2.clone()
+	if condition {
+		r1.appendCard(c1)
+		r1.appendCard(c2)
+	} else {
+		r2.appendCard(c2)
+		r2.appendCard(c1)
+	}
+	return
+}
+
+func contains(decks []Deck, d Deck) bool {
+	for _, deck := range decks {
+		if deck.equals(d) {
+			return true
+		}
+	}
+	return false
+}
+
 type Deck struct {
+	id    int
 	cards []int
 }
 
@@ -75,6 +136,18 @@ func (d Deck) clone() (result Deck) {
 
 func (d Deck) length() int {
 	return len(d.cards)
+}
+
+func (d Deck) equals(deck Deck) bool {
+	if d.length() != deck.length() {
+		return false
+	}
+	for i, card := range d.cards {
+		if deck.cards[i] != card {
+			return false
+		}
+	}
+	return true
 }
 
 func (d Deck) getScore() (result int) {
