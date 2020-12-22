@@ -17,8 +17,7 @@ func puzzle1(input string) int {
 
 func puzzle2(input string) int {
 	deck1, deck2 := getDecksFromInput(input)
-	winner := playRecursiveGame(deck1, deck2)
-	return winner.getScore()
+	return playRecursiveGame(deck1, deck2).getScore()
 }
 
 func getDecksFromInput(input string) (Deck, Deck) {
@@ -43,10 +42,12 @@ func drawCards(d1, d2 Deck) (r1, r2 Deck, c1, c2 int) {
 	return
 }
 
-func playRound(d1, d2 Deck, c1, c2 int) (r1, r2 Deck) {
-	r1 = d1.clone()
-	r2 = d2.clone()
-	return getOutcome(c1 > c2, r1, r2, c1, c2)
+func playRound(d1, d2 Deck, c1, c2 int) (Deck, Deck) {
+	winner := d1
+	if c2 > c1 {
+		winner = d2
+	}
+	return getOutcome(winner, d1.clone(), d2.clone(), c1, c2)
 }
 
 func playRecursiveGame(d1, d2 Deck) Deck {
@@ -75,7 +76,7 @@ func playRecursiveRound(d1, d2 Deck, p1History []Deck) (r1, r2 Deck, updatedHist
 			Deck{id: 1, cards: r1.cards[0:c1]},
 			Deck{id: 2, cards: r2.cards[0:c2]},
 		)
-		r1, r2 = getOutcome(winner.id == 1, r1, r2, c1, c2)
+		r1, r2 = getOutcome(winner, r1, r2, c1, c2)
 		return
 	}
 	r1, r2 = playRound(r1, r2, c1, c2)
@@ -89,10 +90,10 @@ func getWinner(d1, d2 Deck) Deck {
 	return d1
 }
 
-func getOutcome(condition bool, d1, d2 Deck, c1, c2 int) (r1, r2 Deck) {
+func getOutcome(winner, d1, d2 Deck, c1, c2 int) (r1, r2 Deck) {
 	r1 = d1.clone()
 	r2 = d2.clone()
-	if condition {
+	if winner.id == 1 {
 		r1.appendCard(c1)
 		r1.appendCard(c2)
 	} else {
